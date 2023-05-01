@@ -4,8 +4,9 @@
 import sensor, image, lcd, time
 import KPU as kpu
 import gc, sys
-from machine import UART
-from fpioa_manager import fm
+# from machine import UART
+# from fpioa_manager import fm
+import Uart
 import time
 
 def lcd_show_except(e):
@@ -17,12 +18,12 @@ def lcd_show_except(e):
     img.draw_string(0, 10, err_str, scale=1, color=(0xff,0x00,0x00))
     lcd.display(img)
 
-def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/models/m.kmodel",lcd_rotation=0, sensor_hmirror=False, sensor_vflip=False):
+def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/models/m.kmodel",lcd_rotation=0, sensor_hmirror=False, sensor_vflip=False, modelflag = 0):
     sensor.reset()
     sensor.set_pixformat(sensor.RGB565)
     sensor.set_framesize(sensor.QVGA)
     sensor.set_windowing(sensor_window)
-    #sensor.set_hmirror(sensor_hmirror)
+    sensor.set_hmirror(sensor_hmirror)
     sensor.set_vflip(sensor_vflip)
     sensor.run(1)
 
@@ -30,13 +31,14 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
     lcd.rotation(lcd_rotation)
     lcd.clear(lcd.WHITE)
 
-    fm.register(24, fm.fpioa.UART1_TX, force=True)
-    fm.register(25, fm.fpioa.UART1_RX, force=True)
-    fm.register(22, fm.fpioa.UART2_TX, force=True)
-    fm.register(23, fm.fpioa.UART2_RX, force=True)
+    Uart.UartInit()
+    # fm.register(24, fm.fpioa.UART1_TX, force=True)
+    # fm.register(25, fm.fpioa.UART1_RX, force=True)
+    # fm.register(22, fm.fpioa.UART2_TX, force=True)
+    # fm.register(23, fm.fpioa.UART2_RX, force=True)
 
-    uart_A = UART(UART.UART1, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
-    uart_B = UART(UART.UART2, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
+    # uart_A = UART(UART.UART1, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
+    # uart_B = UART(UART.UART2, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
 
     if not labels:
         with open('labels.txt','r') as f:
@@ -68,15 +70,12 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
                     pos = obj.rect()
                     img.draw_rectangle(pos)
                     img.draw_string(pos[0], pos[1], "%s : %.2f" %(labels[obj.classid()], obj.value()), scale=2, color=(255, 0, 0))
-                    uart_A.write(labels[obj.classid()])
+                    if labels[obj.classid()] != "netLine" :
+                        Uart.UartSend(labels[obj.classid()],pos[0])
+                    else :
+                        Uart.UartSend(labels[obj.classid()],pos[1])
+                    # Uart.UartSend(labels[obj.classid()])
                     #time.sleep(0.001)
-                    #if uart_B.any():
-                        #read_data = uart_B.read()
-                        #if read_data:
-                            #read_str = read_data.decode('utf-8')
-                            #print("string = ", read_str)
-                            #if read_str == write_str:
-                                #print("baudrate:115200 bits:8 parity:0 stop:1 ---check Successfully")
             img.draw_string(0, 200, "t:%dms" %(t), scale=2, color=(255, 0, 0))
             lcd.display(img)
     except Exception as e:
