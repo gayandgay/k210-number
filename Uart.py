@@ -12,5 +12,5 @@ def UartInit():
 
 def UartSend(label, position):
     uart_A = UART(UART.UART1, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
-    # uart_A.write(text)
-    uart_A.write(f'{position}:{label}\n'.encode('utf-8'))
+    uart_A.write(label)
+    uart_A.write("{}:{}\n".format(position, label).encode('utf-8'))

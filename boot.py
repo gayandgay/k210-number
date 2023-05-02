@@ -6,7 +6,7 @@ import KPU as kpu
 import gc, sys
 # from machine import UART
 # from fpioa_manager import fm
-import Uart as uart
+import Uart
 import time
 
 def lcd_show_except(e):
@@ -31,7 +31,7 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
     lcd.rotation(lcd_rotation)
     lcd.clear(lcd.WHITE)
 
-    uart.UartInit()
+    Uart.UartInit()
     # fm.register(24, fm.fpioa.UART1_TX, force=True)
     # fm.register(25, fm.fpioa.UART1_RX, force=True)
     # fm.register(22, fm.fpioa.UART2_TX, force=True)
@@ -71,9 +71,9 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
                     img.draw_rectangle(pos)
                     img.draw_string(pos[0], pos[1], "%s : %.2f" %(labels[obj.classid()], obj.value()), scale=2, color=(255, 0, 0))
                     if labels[obj.classid()] != "netLine" :
-                        uart.UartSend(labels[obj.classid()],pos[0])
+                        Uart.UartSend(labels[obj.classid()],pos[0])
                     else :
-                        uart.UartSend(labels[obj.classid()],pos[1])
+                        Uart.UartSend(labels[obj.classid()],pos[1])
                     # Uart.UartSend(labels[obj.classid()])
                     #time.sleep(0.001)
             img.draw_string(0, 200, "t:%dms" %(t), scale=2, color=(255, 0, 0))
@@ -91,7 +91,7 @@ if __name__ == "__main__":
         #main(anchors = anchors, labels=labels, model_addr=0x300000, lcd_rotation=2, sensor_window=(224, 224))
         labels = ['1', '2', '3', '4', '5', '6', '7', '8']
         anchors = [2.16, 2.84, 0.55, 0.87, 3.05, 3.16, 1.13, 1.53, 1.91, 1.97]
-        main(anchors = anchors, labels=labels, model_addr="/sd/models/m2.kmodel", lcd_rotation=2, sensor_window=(224, 224))
+        main(anchors = anchors, labels=labels, model_addr="/sd/models/m2.kmodel", lcd_rotation=2, sensor_window=(224, 224), sensor_hmirror=True)
     except Exception as e:
         sys.print_exception(e)
         lcd_show_except(e)
