@@ -126,22 +126,6 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
                         i = 0;
                         UartSend(target[0]+1, i)
             labelDict.clear()
-
-                    #if len(labelDict) == len(labels):
-                print(len(labelDict),len(objects))
-                sorted_Label = sorted(labelDict.items(), key=lambda x: x[1])
-                sorted_list = list(sorted_Label)
-                if len(labelDict) >= 2:
-                    for i,target in enumerate(sorted_list):
-                        UartSend(target[0]+1, i)
-                        time.sleep(0.001)
-                        #UartSend(sorted_list[1][0], "right")
-                elif len(labelDict) == 2:
-                    i += 1
-                    if i >= 3:
-                        i = 0;
-                        UartSend(target[0]+1, i)
-            labelDict.clear()
             img.draw_string(0, 200, "t:%dms" %(t), scale=2, color=(255, 0, 0))
             lcd.display(img)
     except Exception as e:
