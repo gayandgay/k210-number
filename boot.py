@@ -7,7 +7,24 @@ import gc, sys
 from machine import UART
 from fpioa_manager import fm
 # import Uart
+from machine import UART
+from fpioa_manager import fm
+# import Uart
 import time
+#from collections import Counter
+#from machine import SDCard
+
+#SDCard.remount()
+
+
+def UartInit():
+    fm.register(25, fm.fpioa.UART1_TX, force=True)
+    fm.register(24, fm.fpioa.UART1_RX, force=True)
+
+def UartSend(label, position):
+    uart_A = UART(UART.UART1, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
+    # uart_A.write(label)
+    uart_A.write("{}:{}".format(position, label).encode('utf-8'))
 #from collections import Counter
 #from machine import SDCard
 
@@ -30,6 +47,7 @@ def lcd_show_except(e):
     err_str = err_str.getvalue()
     img = image.Image(size=(224,224))
 
+
     img.draw_string(0, 10, err_str, scale=1, color=(0xff,0x00,0x00))
     lcd.display(img)
 
@@ -47,7 +65,10 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
     lcd.clear(lcd.WHITE)
     labelDict = {}
 
+    labelDict = {}
 
+
+    UartInit()
     UartInit()
     # fm.register(24, fm.fpioa.UART1_TX, force=True)
     # fm.register(25, fm.fpioa.UART1_RX, force=True)
@@ -86,8 +107,25 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
                 for obj in objects:
                     pos = obj.rect()
                     labelDict[obj.classid()] = pos
+                    labelDict[obj.classid()] = pos
                     img.draw_rectangle(pos)
                     img.draw_string(pos[0], pos[1], "%s : %.2f" %(labels[obj.classid()], obj.value()), scale=2, color=(255, 0, 0))
+
+                    #if len(labelDict) == len(labels):
+                print(len(labelDict),len(objects))
+                sorted_Label = sorted(labelDict.items(), key=lambda x: x[1])
+                sorted_list = list(sorted_Label)
+                if len(labelDict) >= 2:
+                    for i,target in enumerate(sorted_list):
+                        UartSend(target[0]+1, i)
+                        time.sleep(0.001)
+                        #UartSend(sorted_list[1][0], "right")
+                elif len(labelDict) == 2:
+                    i += 1
+                    if i >= 3:
+                        i = 0;
+                        UartSend(target[0]+1, i)
+            labelDict.clear()
 
                     #if len(labelDict) == len(labels):
                 print(len(labelDict),len(objects))
