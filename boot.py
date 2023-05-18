@@ -11,11 +11,6 @@ from machine import UART
 from fpioa_manager import fm
 # import Uart
 import time
-#from collections import Counter
-#from machine import SDCard
-
-#SDCard.remount()
-
 
 def UartInit():
     fm.register(25, fm.fpioa.UART1_TX, force=True)
@@ -24,11 +19,6 @@ def UartInit():
 def UartSend(label, position):
     uart_A = UART(UART.UART1, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
     uart_A.write("{}:{}".format(position, label).encode('utf-8'))
-#from collections import Counter
-#from machine import SDCard
-
-#SDCard.remount()
-
 
 def UartInit():
     fm.register(25, fm.fpioa.UART1_TX, force=True)
@@ -65,13 +55,6 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
     labelDict = {}
 
     UartInit()
-    # fm.register(24, fm.fpioa.UART1_TX, force=True)
-    # fm.register(25, fm.fpioa.UART1_RX, force=True)
-    # fm.register(22, fm.fpioa.UART2_TX, force=True)
-    # fm.register(23, fm.fpioa.UART2_RX, force=True)
-
-    # uart_A = UART(UART.UART1, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
-    # uart_B = UART(UART.UART2, 115200, 8, 0, 1, timeout=1000, read_buf_len=4096)
 
     if not labels:
         with open('labels.txt','r') as f:
@@ -106,22 +89,20 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
                     if labels[obj.classid()] != 'netline':
                         labelDict[obj.classid()] = pos[0]
                     else:
-                        UartSend(9, 3)
-
-                    #if len(labelDict) == len(labels):
-                # print(len(labelDict),len(objects))
+                        UartSend(9, 4)
                 sorted_Label = sorted(labelDict.items(), key=lambda x: x[1])
                 sorted_list = list(sorted_Label)
                 #print("sorted_Label: ",sorted_Label)
                 #print("sorted_list: ",sorted_list)
                 if len(labelDict) >= 2:
                     for i,target in enumerate(sorted_list):
-                        UartSend(labels[target[0]], i+1)
+                        if i < 2:
+                            UartSend(labels[target[0]], i+1)
                         # print('UART: {}:{}'.format(i, labels[target[0]]).encode('utf-8'))
-                        print("t:  ",target)
+                        # print("t:  ",target)
                         time.sleep(0.01)
                 elif len(labelDict) == 1:
-                    UartSend(labels[sorted_list[0][0]], -1)
+                    UartSend(labels[sorted_list[0][0]], 3)
                     #print("labels: ",labels[sorted_list[0][0]])
             labelDict.clear()
             img.draw_string(0, 200, "t:%dms" %(t), scale=2, color=(255, 0, 0))
@@ -137,8 +118,8 @@ if __name__ == "__main__":
         #labels = ['1', '2', '3', '4', '5', '6', '7', '8']
         #anchors = [1.40625, 1.8125000000000002, 5.09375, 5.28125, 3.46875, 3.8124999999999996, 2.0, 2.3125, 2.71875, 2.90625]
         #main(anchors = anchors, labels=labels, model_addr=0x300000, lcd_rotation=2, sensor_window=(224, 224))
-        labels = ['netline', '7', '2', '1', '3', '4', '6', '5', '8']
-        anchors = [1.06, 1.28, 1.47, 1.59, 1.62, 2.0, 1.94, 2.34, 6.47, 2.52]
+        labels = ['4', '5', 'netline', '7', '8', '2', '1', '3', '6']
+        anchors = [1.28, 1.59, 1.66, 1.97, 1.03, 1.22, 1.97, 2.47, 3.56, 4.78]
         main(anchors = anchors, labels=labels, model_addr="/sd/models/main.kmodel", lcd_rotation=2, sensor_window=(224, 224), sensor_hmirror=True)
     except Exception as e:
         sys.print_exception(e)
