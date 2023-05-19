@@ -44,7 +44,7 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
     sensor.reset()
     sensor.set_pixformat(sensor.RGB565)
     sensor.set_framesize(sensor.QVGA)
-    sensor.set_windowing(sensor_window)
+    # sensor.set_windowing(sensor_window)
     sensor.set_hmirror(sensor_hmirror)
     sensor.set_vflip(sensor_vflip)
     sensor.run(1)
@@ -78,6 +78,7 @@ def main(anchors, labels = None,  sensor_window=(224, 224), model_addr="/sd/mode
     try:
         while 1:
             img = sensor.snapshot()
+            img = img.resize(224, 224)
             t = time.ticks_ms()
             objects = kpu.run_yolo2(task, img)
             t = time.ticks_ms() - t
